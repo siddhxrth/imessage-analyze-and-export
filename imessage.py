@@ -60,6 +60,6 @@ while True:
 
     if not (loop.lower() == 'y'):
         print("Thank you for using this tool! Check out more of my projects on GitHub: https://github.com/siddhxrth")
-        conn.close()
         cur.close()
+        conn.close()
         break
