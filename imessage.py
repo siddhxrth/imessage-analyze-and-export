@@ -6,7 +6,18 @@ import setup
 conn = sqlite3.connect(setup.PATH_TO_DB)
 cur = conn.cursor()
 
-YOUR_NAME = input("Hello! To begin, what is your name? ")
+print(r"""
+ ____  ___                                 ___              _           _     
+(_|  \/  |                                / _ \            | |         (_)    
+ _| .  . | ___ ___ ___  __ _  __ _  ___  / /_\ \_ __   __ _| |_   _ ___ _ ___ 
+| | |\/| |/ _ / __/ __|/ _` |/ _` |/ _ \ |  _  | '_ \ / _` | | | | / __| / __|
+| | |  | |  __\__ \__ | (_| | (_| |  __/ | | | | | | | (_| | | |_| \__ | \__ \
+|_\_|  |_/\___|___|___/\__,_|\__, |\___| \_| |_|_| |_|\__,_|_|\__, |___|_|___/
+                              __/ |                            __/ |          
+                             |___/                            |___/
+""")
+
+YOUR_NAME = input("Hello! What is your name? ")
 
 while True:
 
