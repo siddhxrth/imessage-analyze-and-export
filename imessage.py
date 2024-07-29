@@ -55,19 +55,27 @@ def get_messages(phone_number, output, sender, recipient):
         
         output.append(f"{formatted_date}{config.DELIMITER}{msg_sender}{config.DELIMITER}{text}{config.DELIMITER}{decoded}")
 
-output = ["time,sender,message,decoded"]
 
-sender = input("Your name: ")
-recipient = input("Recipient's name: ")
-phone_number = input("Phone number: ")
 
-sender_msg_count = 0
-recipient_msg_count = 0
+while True:
+    output = ["time,sender,message,decoded"]
 
-get_messages(phone_number, output, sender, recipient)
+    sender = input("Your name: ")
+    recipient = input("Recipient's name: ")
+    phone_number = input("Phone number: ")
 
-with open(f"output/{sender}-{recipient}.csv", "w") as f:
-    f.write(config.NEWLINE.join(output))
+    sender_msg_count = 0
+    recipient_msg_count = 0
 
-print(f"Wrote {sender_msg_count} messages from {sender} to {recipient} to output/{sender}-{recipient}.csv")
-print(f"Wrote {recipient_msg_count} messages from {recipient} to {sender} to output/{sender}-{recipient}.csv")
+    get_messages(phone_number, output, sender, recipient)
+
+    with open(f"output/{sender}-{recipient}.csv", "w") as f:
+        f.write(config.NEWLINE.join(output))
+
+    print(f"Wrote {sender_msg_count} messages from {sender} to {recipient} to output/{sender}-{recipient}.csv")
+    print(f"Wrote {recipient_msg_count} messages from {recipient} to {sender} to output/{sender}-{recipient}.csv")
+
+    continue_option = input("Do you want to continue? (y/n): ")
+    if continue_option.lower() != 'y':
+        print("Thank you for using this tool! Check out my other projects at https://github.com/siddhxrth !")
+        break
