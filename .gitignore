@@ -2,3 +2,5 @@
 *.db-*
 *.pyc
 *.csv
+sample_messages/*
+output/*

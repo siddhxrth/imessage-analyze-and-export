@@ -1,76 +1,73 @@
+import utils
 import sqlite3
 from datetime import datetime
-import setup
+import config
 
-# CONNECT TO DATABASE
-conn = sqlite3.connect(setup.PATH_TO_DB)
-cur = conn.cursor()
+def get_messages(phone_number, output, sender, recipient):
+    handle_ids = utils.get_handle_ids(phone_number)
+    if not handle_ids:
+        print(f"No handle IDs found for {phone_number}")
+        return
 
-print(r"""
- ____  ___                                 ___              _           _     
-(_|  \/  |                                / _ \            | |         (_)    
- _| .  . | ___ ___ ___  __ _  __ _  ___  / /_\ \_ __   __ _| |_   _ ___ _ ___ 
-| | |\/| |/ _ / __/ __|/ _` |/ _` |/ _ \ |  _  | '_ \ / _` | | | | / __| / __|
-| | |  | |  __\__ \__ | (_| | (_| |  __/ | | | | | | | (_| | | |_| \__ | \__ \
-|_\_|  |_/\___|___|___/\__,_|\__, |\___| \_| |_|_| |_|\__,_|_|\__, |___|_|___/
-                              __/ |                            __/ |          
-                             |___/                            |___/
-""")
+    handle_id = handle_ids[0]
 
-YOUR_NAME = input("Hello! What is your name? ")
+    conn = sqlite3.connect(config.PATH_TO_DB)
+    cursor = conn.cursor()
 
-while True:
+    query = """
+    SELECT datetime(message.date / 1000000000 + strftime('%s', '2001-01-01'), 'unixepoch', 'localtime') as date,
+           message.text,
+           message.is_from_me,
+           message.attributedBody
+    FROM message
+    WHERE handle_id = ?
+    ORDER BY date ASC
+    """
 
-    NAME_OF_CONTACT = input("What is the sender's name? ")
-    HANDLE_ID = input("What is %s's handle_id? " % NAME_OF_CONTACT)
+    cursor.execute(query, (handle_id,))
+    messages = cursor.fetchall()
 
-    # QUERY SENDER, DATE/TIME, AND TEXT FOR EACH RECORD IN MESSAGE TABLE FROM SPECIFIED SENDER
-    cur.execute( 
-    '''
-    SELECT
-    is_from_me,
-    datetime(substr(date, 1, 9) + 978307200, 'unixepoch', 'localtime') as f_date,
-    text
-    FROM MESSAGE
-    WHERE handle_id = %s;
-    ''' % HANDLE_ID
-    ) 
+    conn.close()
 
-    # VARIABLES THAT HOLDS NUMBER OF MESSAGES FOUND
-    id = 0
-    your_messages = 0
-    recieved_messages = 0
+    if not messages:
+        print(f"No messages found for handle ID {handle_id}")
+        return
 
-
-    # CLEAR OUTPUT.CSV FILE
-    with open('./%s.csv' % NAME_OF_CONTACT.replace(" ", ''), 'w') as output:
-        output.write('')
-        output.close()
-
-    # ITERATE THROUGH EACH RECORD AND WRITE A NEW LINE WITH DATE, TEXT & MESSAGE ID
-    with open('./%s.csv' % NAME_OF_CONTACT.replace(" ", ''), 'a') as output:
+    for date, text, is_from_me, attributed_body in messages:
+        msg_sender = sender if is_from_me else recipient
+        if is_from_me:
+            global sender_msg_count
+            sender_msg_count += 1
+        else:
+            global recipient_msg_count
+            recipient_msg_count += 1
+        formatted_date = datetime.strptime(date, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %I:%M:%S %p")
+        decoded = False
+        if text is None:
+            if attributed_body is not None:
+                text = utils.decode_attributed_body(attributed_body.hex())
+                decoded = True
         
-        output.write('date, message, id')
-
-        for record in cur.fetchall():
-            if(record[0] == 0):
-                if not(record[2] == ' '):
-                    output.write(setup.NEWLINE + str(record[1]) + setup.DELIMITER + NAME_OF_CONTACT + ": " + str(record[2]).replace("\n", ' ') + setup.DELIMITER + str(id))
-                    recieved_messages += 1
-            else:
-                if not(record[2] == ' '):
-                    output.write(setup.NEWLINE + str(record[1]) + setup.DELIMITER + YOUR_NAME + ": " + str(record[2]).replace("\n", ' ') + setup.DELIMITER + str(id))
-                    your_messages += 1
-            id += 1
+        # Replace newlines and commas with escape characters
+        if text:
+            text = text.replace('\n', '\\n').replace('\r', '\\r').replace('"', "'")
+            text = f"\"{text}\""
         
-        output.close()
+        output.append(f"{formatted_date}{config.DELIMITER}{msg_sender}{config.DELIMITER}{text}{config.DELIMITER}{decoded}")
 
-    print("Found %s messages between %s and %s! Check \"./%s.csv\" for a list of them. Out of the %s total messages, you sent %s of them and %s sent %s of them." % (id, YOUR_NAME , NAME_OF_CONTACT, NAME_OF_CONTACT.replace(" ", '') ,id, your_messages, NAME_OF_CONTACT, recieved_messages))
+output = ["time,sender,message,decoded"]
 
-    loop = input("Do you want to analyze another conversation? (y/n) ")
+sender = input("Your name: ")
+recipient = input("Recipient's name: ")
+phone_number = input("Phone number: ")
 
-    if not (loop.lower() == 'y'):
-        print("Thank you for using this tool! Check out more of my projects on GitHub: https://github.com/siddhxrth")
-        cur.close()
-        conn.close()
-        break
+sender_msg_count = 0
+recipient_msg_count = 0
+
+get_messages(phone_number, output, sender, recipient)
+
+with open(f"output/{sender}-{recipient}.csv", "w") as f:
+    f.write(config.NEWLINE.join(output))
+
+print(f"Wrote {sender_msg_count} messages from {sender} to {recipient} to output/{sender}-{recipient}.csv")
+print(f"Wrote {recipient_msg_count} messages from {recipient} to {sender} to output/{sender}-{recipient}.csv")

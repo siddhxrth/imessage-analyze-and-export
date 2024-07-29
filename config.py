@@ -1,4 +1,3 @@
 NEWLINE = "\n"
-DELIMITER = ", "
-
+DELIMITER = ","
 PATH_TO_DB = "chat.db"
