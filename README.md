@@ -1,6 +1,8 @@
 # iMessage Conversation Analyzer & Exporter
 ### Command Line Interface to Analyze iMessage Conversations and Export All Messages into a .csv File, Perfect for Data Hoarders or If You Want to Archive Old Conversations!
 
+[![Star History Chart](https://api.star-history.com/svg?repos=siddhxrth/imessage-analyze-and-export&type=Date)](https://star-history.com/#siddhxrth/imessage-analyze-and-export&Date)
+
 ## Requirements:
 * You need a computer running MacOS (either a real Mac or a Hackintosh)
   * Your Apple services have to be functional (including iMessage)
